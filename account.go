@@ -14,15 +14,15 @@ import (
 	"time"
 )
 
-func GenerateKeys(signAlgoName string) (string, string) {
+func GenerateKeys(sigAlgoName string) (string, string) {
 	seed := make([]byte, crypto.MinSeedLength)
 	_, err := rand.Read(seed)
 	if err != nil {
 		panic(err)
 	}
 
-	signAlgo := crypto.StringToSignatureAlgorithm(signAlgoName)
-	privateKey, err := crypto.GeneratePrivateKey(signAlgo, seed)
+	sigAlgo := crypto.StringToSignatureAlgorithm(sigAlgoName)
+	privateKey, err := crypto.GeneratePrivateKey(sigAlgo, seed)
 	if err != nil {
 		panic(err)
 	}
@@ -35,13 +35,13 @@ func GenerateKeys(signAlgoName string) (string, string) {
 	return pubKeyHex, privKeyHex
 }
 
-func CreateAccount(node string, publicKeyHex string, signAlgoName string, hashAlgoName string,
-	code string, serviceAddressHex string, servicePrivKeyHex string, serviceSignAlgoName string,
+func CreateAccount(node string, publicKeyHex string, sigAlgoName string, hashAlgoName string,
+	code string, serviceAddressHex string, servicePrivKeyHex string, serviceSigAlgoName string,
 	gasLimit uint64) string {
 	ctx := context.Background()
 
-	signAlgo := crypto.StringToSignatureAlgorithm(signAlgoName)
-	publicKey, err := crypto.DecodePublicKeyHex(signAlgo, publicKeyHex)
+	sigAlgo := crypto.StringToSignatureAlgorithm(sigAlgoName)
+	publicKey, err := crypto.DecodePublicKeyHex(sigAlgo, publicKeyHex)
 	if err != nil {
 		panic(err)
 	}
@@ -50,7 +50,7 @@ func CreateAccount(node string, publicKeyHex string, signAlgoName string, hashAl
 
 	accountKey := flow.NewAccountKey().
 		SetPublicKey(publicKey).
-		SetSigAlgo(signAlgo).
+		SetSigAlgo(sigAlgo).
 		SetHashAlgo(hashAlgo).
 		SetWeight(flow.AccountKeyWeightThreshold)
 
@@ -64,8 +64,8 @@ func CreateAccount(node string, publicKeyHex string, signAlgoName string, hashAl
 		panic("failed to connect to node")
 	}
 
-	serviceSignAlgo := crypto.StringToSignatureAlgorithm(serviceSignAlgoName)
-	servicePrivKey, err := crypto.DecodePrivateKeyHex(serviceSignAlgo, servicePrivKeyHex)
+	serviceSigAlgo := crypto.StringToSignatureAlgorithm(serviceSigAlgoName)
+	servicePrivKey, err := crypto.DecodePrivateKeyHex(serviceSigAlgo, servicePrivKeyHex)
 	if err != nil {
 		panic(err)
 	}
@@ -130,7 +130,7 @@ func main() {
 
 	node := "127.0.0.1:3569"
 
-	signAlgoName := "ECDSA_P256"
+	sigAlgoName := "ECDSA_P256"
 	hashAlgoName := "SHA3_256"
 	code := `
 			pub contract HelloWorld {
@@ -149,12 +149,12 @@ func main() {
 
 	serviceAddressHex := "f8d6e0586b0a20c7"
 	servicePrivKeyHex := "0ab0b3c92adf319ab118f6c073003f7029bb6fa8eb986f47f9b139fbb189e655"
-	serviceSignAlgoHex := "ECDSA_P256"
+	serviceSigAlgoHex := "ECDSA_P256"
 
 	gasLimit := uint64(100)
 
-	txID := CreateAccount(node, pubKey, signAlgoName, hashAlgoName, code, serviceAddressHex,
-		servicePrivKeyHex, serviceSignAlgoHex, gasLimit)
+	txID := CreateAccount(node, pubKey, sigAlgoName, hashAlgoName, code, serviceAddressHex,
+		servicePrivKeyHex, serviceSigAlgoHex, gasLimit)
 
 	fmt.Println(txID)
 
